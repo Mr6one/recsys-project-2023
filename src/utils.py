@@ -171,7 +171,7 @@ def generate_interactions_matrix(data, data_description, rebase_users=False):
     return csr_matrix((feedback, (user_idx, item_idx)), shape=(n_users, n_items))
 
 
-def get_subsets_matrix_description(data_name, time_split_q=0.98):
+def get_subsets_matrix_description(data_name, time_split_q=0.95):
     '''
     data can be: 'yelp', 'movielens'
     '''
