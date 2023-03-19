@@ -2,6 +2,7 @@ import json
 import argparse
 
 import pandas as pd
+import numpy as np
 
 
 def parse_args():
@@ -67,3 +68,83 @@ def timepoint_split(data, time_split_q=0.95):
     ).sort_values('userid')
     
     return training, testset, holdout
+
+
+def transform_data(train, test, holdout=None, userid='userid', itemid='movieid'):
+    train_new, data_index = transform_indices(train, 'userid', 'movieid')
+    testset_new = reindex_data(test, data_index, fields='items')
+    if holdout is None:
+        return train_new, testset_new, data_index
+    holdout_new = reindex_data(holdout, data_index, fields='items')
+    
+    return train_new, testset_new, holdout_new, data_index
+
+
+def transform_indices(data, users, items):
+    '''
+    Reindex columns that correspond to users and items.
+    New index is contiguous starting from 0.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        The input data to be reindexed.
+    users : str
+        The name of the column in `data` that contains user IDs.
+    items : str
+        The name of the column in `data` that contains item IDs.
+
+    Returns
+    -------
+    pandas.DataFrame, dict
+        The reindexed data and a dictionary with the original IDs and the new numeric IDs.
+        The keys of the dictionary are 'users' and 'items'.
+        The values of the dictionary are pandas Index objects.
+
+    Examples
+    --------
+    >>> data = pd.DataFrame({'users': ['A', 'B', 'C'], 'items': ['X', 'Y', 'Z'], 'rating': [1, 2, 3]})
+    >>> data_reindexed, data_index = transform_indices(data, 'users', 'items')
+    >>> data_reindexed
+       users  items  rating
+    0      0      0       1
+    1      1      1       2
+    2      2      2       3
+    >>> data_index
+    {'users': Index(['A', 'B', 'C'], dtype='object'), 'items': Index(['X', 'Y', 'Z'], dtype='object')}
+    '''
+    data_index = {}
+    for entity, field in zip(['users', 'items'], [users, items]):
+        new_index, data_index[entity] = to_numeric_id(data, field)
+        data = data.assign(**{f'{field}': new_index}) # makes a copy of dataset!
+    return data, data_index
+
+
+def to_numeric_id(data, field):
+    """
+    This function takes in two arguments, data and field. It converts the data field
+    into categorical values and creates a new contiguous index. It then creates an
+    idx_map which is a renamed version of the field argument. Finally, it returns the
+    idx and idx_map variables. 
+    """
+    idx_data = data[field].astype("category")
+    idx = idx_data.cat.codes
+    idx_map = idx_data.cat.categories.rename(field)
+    return idx, idx_map
+
+
+def reindex_data(data, data_index, fields=None):
+    '''
+    Reindex provided data with the specified index mapping.
+    By default, will take the name of the fields to reindex from `data_index`.
+    It is also possible to specify which field to reindex by providing `fields`.
+    '''
+    if fields is None:
+        fields = data_index.keys()
+    if isinstance(fields, str): # handle single field provided as a string
+        fields = [fields]
+    for field in fields:
+        entity_name = data_index[field].name
+        new_index = data_index[field].get_indexer(data[entity_name])
+        data = data.assign(**{f'{entity_name}': new_index}) # makes a copy of dataset!
+    return data
