@@ -1,0 +1,17 @@
+{
+    "model": "ngcf",
+    "dataset": "yelp",
+    
+    "model_args": {
+        "hidden_dim": 128, 
+        "layers_dim": [128, 256, 512, 1024], 
+        "device": "cpu", 
+        "max_items": 100, 
+        "batch_size": 128, 
+        "learning_rate": 3e-4,
+        "n_epochs": 10,
+        "num_devices": 1, 
+        "alpha": 1e-5,
+        "version": null
+    }
+}
