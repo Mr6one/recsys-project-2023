@@ -171,25 +171,18 @@ def generate_interactions_matrix(data, data_description, rebase_users=False):
     return csr_matrix((feedback, (user_idx, item_idx)), shape=(n_users, n_items))
 
 
-def get_subsets_matrix_description(data_name, time_split_q=0.95):
+def verify_time_split(before, after, target_field='userid', timeid='timestamp'):
     '''
-    data can be: 'yelp', 'movielens'
+    Check that items from `after` dataframe have later timestamps than
+    any corresponding item from the `before` dataframe. Compare w.r.t target_field.
+    Usage example: assert that for any user, the holdout items are the most recent ones.
     '''
-    if data_name == 'yelp':
-        data = pd.read_csv('data/yelp.rating', sep='\t', names='userid,movieid,rating,timestamp'.split(','))
-    elif data_name == 'movielens':
-        data = get_movielens_data(include_time=True)
-    
-    training, testset, holdout, data_index = transform_data(*timepoint_split(data,
-                                                                             time_split_q=time_split_q))
-    data_description = dict(
-        users = data_index['users'].name,
-        items = data_index['items'].name,
-        feedback = 'rating',
-        n_users = len(data_index['users']),
-        n_items = len(data_index['items']),
-    )
-    
-    training_matrix = generate_interactions_matrix(training, data_description, rebase_users=False)
+    before_ts = before.groupby(target_field)[timeid].max()
+    after_ts = after.groupby(target_field)[timeid].min()
+    assert (
+        before_ts
+        .reindex(after_ts.index)
+        .combine(after_ts, lambda x, y: True if x!=x else x <= y)
+    ).all()
 
-    return training, testset, holdout, data_index, training_matrix, data_description
+

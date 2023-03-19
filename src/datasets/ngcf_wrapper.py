@@ -26,7 +26,7 @@ class NGCFDataset(Dataset):
         return self.n_users
     
     def __getitem__(self, idx):
-        pos_items = self.users_interactions[idx]
+        pos_items = self.users_interactions.iloc[idx]
         neg_items = list(self.all_items.difference(pos_items))
 
         num_items = min(len(pos_items), len(neg_items), self.max_items)

@@ -14,8 +14,8 @@ class BPRLoss(nn.Module):
         pos_scores = (users * pos_items).sum(axis=1)
         neg_scores = (users * neg_items).sum(axis=1)
 
-        loss = -F.logsigmoid(pos_scores - neg_scores)
-        reg = self.alpha * (torch.norm(users, p=2, dim=1).pow(2) + torch.norm(pos_items, p=2, dim=1).pow(2) + torch.norm(neg_items, p=2, dim=1).pow(2))
+        loss = -F.logsigmoid(pos_scores - neg_scores).mean()
+        reg = 0.5 * self.alpha * (torch.norm(users).pow(2) + torch.norm(pos_items).pow(2) + torch.norm(neg_items).pow(2)) / len(pos_scores)
         
-        loss = scatter_sum(loss + reg, users_idx).mean()
+        loss = loss + reg
         return loss
