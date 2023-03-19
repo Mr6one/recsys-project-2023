@@ -148,3 +148,22 @@ def reindex_data(data, data_index, fields=None):
         new_index = data_index[field].get_indexer(data[entity_name])
         data = data.assign(**{f'{entity_name}': new_index}) # makes a copy of dataset!
     return data
+
+
+def generate_interactions_matrix(data, data_description, rebase_users=False):
+    '''
+    Convert pandas dataframe with interactions into a sparse matrix.
+    Allows reindexing user ids, which help ensure data consistency
+    at the scoring stage (assumes user ids are sorted in scoring array).
+    '''
+    n_users = data_description['n_users']
+    n_items = data_description['n_items']
+    # get indices of observed data
+    user_idx = data[data_description['users']].values
+    if rebase_users:
+        user_idx, user_index = pd.factorize(user_idx, sort=True)
+        n_users = len(user_index)
+    item_idx = data[data_description['items']].values
+    feedback = data[data_description['feedback']].values
+    # construct rating matrix
+    return csr_matrix((feedback, (user_idx, item_idx)), shape=(n_users, n_items))
