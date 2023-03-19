@@ -168,3 +168,19 @@ def generate_interactions_matrix(data, data_description, rebase_users=False):
     feedback = data[data_description['feedback']].values
     # construct rating matrix
     return csr_matrix((feedback, (user_idx, item_idx)), shape=(n_users, n_items))
+
+
+def get_subsets_matrix_description(data, time_split_q=0.98):
+    training, testset, holdout, data_index = transform_data(*timepoint_split(data,
+                                                                             time_split_q=time_split_q))
+    data_description = dict(
+        users = data_index['users'].name,
+        items = data_index['items'].name,
+        feedback = 'rating',
+        n_users = len(data_index['users']),
+        n_items = len(data_index['items']),
+    )
+    
+    training_matrix = generate_interactions_matrix(training, data_description, rebase_users=False)
+
+    return training, testset, holdout, data_index, training_matrix, data_description
