@@ -58,6 +58,10 @@ class iALS:
             if self.callback is not None:
                 log = self.callback(user_factors, item_factors)
                 logs.append(log)
+                
+        self.item_factors = item_factors
+        self.user_factors = user_factors
+        return np.array(logs)
 
 
     def predict(self, id_user, k=None):
