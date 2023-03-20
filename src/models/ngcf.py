@@ -11,6 +11,7 @@ import pytorch_lightning as pl
 
 from src.losses import BPRLoss
 from src.datasets import NGCFDataset
+from src.evaluation.evaluation import downvote_seen_items, topn_recommendations, model_evaluate
 
 
 class NGCF(pl.LightningModule):
@@ -21,7 +22,6 @@ class NGCF(pl.LightningModule):
             hidden_dim, 
             layers_dim, 
             device='cpu', 
-            max_items=100, 
             batch_size = 128, 
             learning_rate=3e-4,
             n_epochs=10,
@@ -45,7 +45,6 @@ class NGCF(pl.LightningModule):
         self.adj_matrix = None
         self.criterion = BPRLoss(alpha=alpha)
 
-        self.max_items = max_items
         self.batch_size = batch_size
         self.num_devices = num_devices
         self.learning_rate = learning_rate
@@ -112,21 +111,38 @@ class NGCF(pl.LightningModule):
         user_embeddings_ = user_embeddings[users]
         pos_items_embeddings = item_embeddings[pos_items]
         neg_items_embeddings = item_embeddings[neg_items]
-        loss = self.criterion(users, user_embeddings_, pos_items_embeddings, neg_items_embeddings)
+        loss = self.criterion(user_embeddings_, pos_items_embeddings, neg_items_embeddings)
 
         self.log('loss/training', loss, prog_bar=True, on_epoch=True, on_step=True)
 
+        if self.holdout_data is not None:
+            self._validation_step()
+
         return loss
+    
+    def _validation_step(self):
+        topn = 10
+        holdout, testset, data_description = self.holdout_data
+
+        scores_movielens = self.score_users(holdout.userid.values)
+        downvote_seen_items(scores_movielens, testset, data_description)
+        recs_movielens = topn_recommendations(scores_movielens, topn=topn)
+        hr, mrr, ndcg, _ = model_evaluate(recs_movielens, holdout, data_description, topn=topn) 
+
+        self.log('validation/hr', hr, on_epoch=True, on_step=False)
+        self.log('validation/mrr', mrr, on_epoch=True, on_step=False)
+        self.log('validation/ndcg', ndcg, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         return optimizer
     
-    def fit(self, interactions_matrix):
+    def fit(self, interactions_matrix, holdout_data=None):
         device = 'gpu' if self.device.type == 'cuda' else 'cpu'
+        self.holdout_data = holdout_data
 
         self.adj_matrix = self._prepare_model_input(interactions_matrix).to(self.device)
-        dataset = NGCFDataset(interactions_matrix, max_items=self.max_items)
+        dataset = NGCFDataset(interactions_matrix)
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, pin_memory=True, collate_fn=NGCFDataset.collate_fn)
 
         logger = pl.loggers.TensorBoardLogger(save_dir=os.getcwd(), version=self.version, name='lightning_logs')

@@ -6,12 +6,11 @@ from torch.utils.data import Dataset
 
 
 class NGCFDataset(Dataset):
-    def __init__(self, interaction_matrix, max_items=100):
+    def __init__(self, interaction_matrix):
         n_users, n_items = interaction_matrix.shape
 
         self.n_users = n_users
         self.n_items = n_items
-        self.max_items = max_items
 
         self.users_interactions = self._matrix_to_lists(interaction_matrix)
         self.all_items = set(np.arange(n_items))
@@ -29,7 +28,7 @@ class NGCFDataset(Dataset):
         pos_items = self.users_interactions.iloc[idx]
         neg_items = list(self.all_items.difference(pos_items))
 
-        num_items = min(len(pos_items), len(neg_items), self.max_items)
+        num_items = min(len(pos_items), len(neg_items))
         pos_items = np.random.choice(pos_items, size=num_items, replace=False)
         neg_items = np.random.choice(neg_items, size=num_items, replace=False)
         

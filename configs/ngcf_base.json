@@ -1,15 +1,14 @@
 {
     "model": "ngcf",
-    "dataset": "movielens",
+    "dataset": "yelp",
 
     "model_args": {
         "hidden_dim": 64, 
-        "layers_dim": [64, 64, 64, 64], 
-        "max_items": 1,
+        "layers_dim": [64, 64, 64, 64],
 
-        "batch_size": 1024, 
-        "learning_rate": 5e-4,
-        "n_epochs": 400,
+        "batch_size": 512, 
+        "learning_rate": 5e-3,
+        "n_epochs": 30,
 
         "device": "cuda",
         "num_devices": 1, 
