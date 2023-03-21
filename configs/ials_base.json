@@ -1,6 +1,6 @@
 {
     "model": "ials",
-    "dataset": "yelp",
+    "dataset": "movielens",
 
     "model_args": {
         "factors": 100, 
