@@ -67,7 +67,8 @@ class eALS:
             if self.callback is not None:
                 log = self.callback(self.P, self.Q)
                 self._logs.append(log)
-            
+
+        torch.cuda.empty_cache()
         return self
     
     @torch.no_grad()

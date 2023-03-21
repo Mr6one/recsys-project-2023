@@ -44,7 +44,8 @@ class ALS:
                 
         self.P = P
         self.Q = Q
-        
+
+        torch.cuda.empty_cache()
         return self
     
     @torch.no_grad()

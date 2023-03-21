@@ -1,0 +1,10 @@
+{
+    "model": "ials",
+    "dataset": "yelp",
+
+    "model_args": {
+        "factors": 100, 
+        "device": "cuda", 
+        "save_path": "./weights/ials_movielens.pkl"
+    }
+}

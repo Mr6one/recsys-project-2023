@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from tqdm.notebook import tqdm
 
@@ -6,12 +7,13 @@ from torch_scatter import scatter_sum
 
 
 class iALS:
-    def __init__(self, factors, iterations=100, alpha=1, y=1, regularization=0.1, device='cpu', callback=None):
+    def __init__(self, factors, iterations=100, alpha=1, y=1, regularization=0.1, device='cpu', callback=None, save_path=None):
         self.factors = factors
         self.reg = regularization
         self.iterations = iterations
         self.device = device
         self.callback = callback
+        self.save_path = save_path
 
         self.alpha = alpha
         self.y = y
@@ -26,11 +28,11 @@ class iALS:
         item_factors = torch.randn(n_items, num_factors, device=self.device) / np.sqrt(num_factors)
         I = torch.eye(self.factors, device=self.device)
 
-        users2items = torch.from_numpy(R.tocsr().indices).to(torch.long)
-        items2users = torch.from_numpy(R.T.tocsr().indices).to(torch.long)
-
         R = R.tocoo()
         rows, cols = torch.from_numpy(np.stack(R.nonzero())).to(torch.long)
+
+        users2items = torch.from_numpy(R.tocsr().indices).to(torch.long)
+        items2users = torch.from_numpy(R.T.tocsr().indices).to(torch.long)
         
         rows = rows.to(self.device)
         cols = cols.to(self.device)
@@ -41,19 +43,27 @@ class iALS:
         self._logs = []
         for _ in tqdm(range(self.iterations)):
 
-            VV = item_factors.T @ item_factors
-            grad_w_u = self.alpha * self.y * scatter_sum(item_factors[cols], rows, dim=0)
+            grad_w_2_u = []
             for user_id in range(n_users):
                 items = users2items[user_id: user_id + 1]
-                grad_w_2_u = self.alpha * VV + self.reg * I + self.alpha * item_factors[items].T @ item_factors[items]
-                user_factors[user_id] = torch.linalg.inv(grad_w_2_u) @ grad_w_u[user_id]
+                grad_w_2_u.append(item_factors[items].T @ item_factors[items])
 
-            UU = user_factors.T @ user_factors
-            grad_w_i = self.alpha * self.y * scatter_sum(item_factors[rows], cols, dim=0)
+            grad_w_2_u = torch.stack(grad_w_2_u)
+            grad_w_2_u = self.alpha * item_factors.T @ item_factors + self.reg * I + self.alpha * grad_w_2_u
+
+            grad_w_u = self.alpha * self.y * scatter_sum(item_factors[cols], rows, dim=0)
+            user_factors = torch.matmul(torch.linalg.inv(grad_w_2_u), grad_w_u.unsqueeze(2)).squeeze(2)
+
+            grad_w_2_i = []
             for item_id in range(n_items):
                 users = items2users[item_id: item_id + 1]
-                grad_w_2_i = self.alpha * UU + self.reg * I + self.alpha * user_factors[users].T @ user_factors[users]
-                item_factors[item_id] = torch.linalg.inv(grad_w_2_i) @ grad_w_i[item_id]
+                grad_w_2_i.append(user_factors[users].T @ user_factors[users])
+
+            grad_w_2_i = torch.stack(grad_w_2_i)
+            grad_w_2_i = self.alpha * user_factors.T @ user_factors + self.reg * I + self.alpha * grad_w_2_i
+
+            grad_w_i = self.alpha * self.y * scatter_sum(user_factors[rows], cols, dim=0)
+            item_factors = torch.matmul(torch.linalg.inv(grad_w_2_i), grad_w_i.unsqueeze(2)).squeeze(2)
 
             if self.callback is not None:
                 log = self.callback(user_factors, item_factors)
@@ -61,6 +71,11 @@ class iALS:
                 
         self.item_factors = item_factors
         self.user_factors = user_factors
+        torch.cuda.empty_cache()
+
+        if self.save_path is not None:
+            with open(self.save_path, 'wb') as f:
+                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         return self
 
