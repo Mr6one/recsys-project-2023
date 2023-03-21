@@ -1,6 +1,8 @@
 import numpy as np
-import torch
 from tqdm.notebook import tqdm
+
+import torch
+from torch_scatter import scatter_sum
 
 
 class iALS:
@@ -14,6 +16,7 @@ class iALS:
         self.alpha = alpha
         self.y = y
 
+        self._logs = []
 
     def fit(self, R):
         n_users, n_items = R.shape
@@ -22,56 +25,64 @@ class iALS:
         user_factors = torch.randn(n_users, num_factors, device=self.device) / np.sqrt(num_factors)
         item_factors = torch.randn(n_items, num_factors, device=self.device) / np.sqrt(num_factors)
         I = torch.eye(self.factors, device=self.device)
-        R = R.to(self.device)
 
-        logs = []
+        users2items = torch.from_numpy(R.tocsr().indices).to(torch.long)
+        items2users = torch.from_numpy(R.T.tocsr().indices).to(torch.long)
 
+        R = R.tocoo()
+        rows, cols = torch.from_numpy(np.stack(R.nonzero())).to(torch.long)
+        
+        rows = rows.to(self.device)
+        cols = cols.to(self.device)
+        
+        users2items = users2items.to(self.device)
+        items2users = items2users.to(self.device)
+
+        self._logs = []
         for _ in tqdm(range(self.iterations)):
 
             VV = item_factors.T @ item_factors
+            grad_w_u = self.alpha * self.y * scatter_sum(item_factors[cols], rows, dim=0)
+            for user_id in range(n_users):
+                items = users2items[user_id: user_id + 1]
+                grad_w_2_u = self.alpha * VV + self.reg * I + self.alpha * item_factors[items].T @ item_factors[items]
+                user_factors[user_id] = torch.linalg.inv(grad_w_2_u) @ grad_w_u[user_id]
 
-            for user_id in range(R.shape[0]):
-
-                grad_w_u = 0
-                grad_w_2_u = self.alpha * VV + self.reg * I
-
-                for i, item in enumerate(R[user_id]):
-                    if int(item) != 0:
-                        grad_w_u += self.alpha * self.y * item_factors[i]
-                        grad_w_2_u += self.alpha * item_factors[i].T @ item_factors[i]
-
-                user_factors[user_id, :] = torch.linalg.inv(grad_w_2_u) @ grad_w_u
-
-            UU = np.tensordot(user_factors.T, user_factors, axes=1)
-
-            for item_id in range(R.shape[1]):
-                grad_w_i = 0
-                grad_w_2_i = self.alpha * UU + self.reg * I
-
-                for j, user in enumerate(R[item_id]):
-                    if int(user) != 0:
-                        grad_w_i += self.alpha * self.y * user_factors[j]
-                        grad_w_2_i += self.alpha * user_factors[j].T @ user_factors[j]
-
-                item_factors[item_id, :] = torch.linalg.inv(grad_w_2_i) @ grad_w_i
+            UU = user_factors.T @ user_factors
+            grad_w_i = self.alpha * self.y * scatter_sum(item_factors[rows], cols, dim=0)
+            for item_id in range(n_items):
+                users = items2users[item_id: item_id + 1]
+                grad_w_2_i = self.alpha * UU + self.reg * I + self.alpha * user_factors[users].T @ user_factors[users]
+                item_factors[item_id] = torch.linalg.inv(grad_w_2_i) @ grad_w_i[item_id]
 
             if self.callback is not None:
                 log = self.callback(user_factors, item_factors)
-                logs.append(log)
+                self._logs.append(log)
                 
         self.item_factors = item_factors
         self.user_factors = user_factors
-        return np.array(logs)
 
+        return self
 
-    def predict(self, id_user, k=None):
-        if k is None:
-            k = len(self.item_factors)
+    @torch.no_grad()
+    def _recommend_all(self, user_ids):
+        user_ids = torch.from_numpy(user_ids).to(torch.long).to(self.device)
+        scores = self.user_factors[user_ids] @ self.item_factors.T
+        return scores
+    
+    @torch.no_grad()
+    def recommend(self, user_ids, N=10):
+        scores = self._recommend_all(user_ids)
+        output = torch.topk(scores, N, dim=1).indices
+        return output.cpu().numpy()
 
-        p = self.user_factors[id_user]
-
-        scores = self.item_factors @ p
-
-        top_k = torch.argsort(scores, descending=True)[:k]
-
-        return top_k
+    @torch.no_grad()
+    def recommend_all(self, user_ids):
+        scores = self._recommend_all(user_ids)
+        output = torch.argsort(scores, descending=True, dim=1)
+        return output.cpu().numpy()
+    
+    @torch.no_grad()
+    def score_users(self, user_ids):
+        scores = self._recommend_all(user_ids)
+        return scores.cpu().numpy()
