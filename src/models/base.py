@@ -24,6 +24,8 @@ class BaseModel:
 
     def cpu(self):
         self._to_device('cpu')
+        return self
 
     def cuda(self):
         self._to_device('cuda')
+        return self
