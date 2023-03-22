@@ -1,10 +1,10 @@
 {
     "model": "eals",
-    "dataset": "movielens",
+    "dataset": "yelp",
 
     "model_args": {
         "factors": 100,
-        "device": "cuda",
-        "save_path": "./weights/eals_movielens.pkl"
+        "device": "cpu",
+        "save_path": "./weights/eals_yelp.pkl"
     }
 }

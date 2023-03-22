@@ -18,7 +18,7 @@ class eALS:
         self.save_path = save_path
         self._logs = []
         
-    def fit(self, X):
+    def fit(self, X, validation=None):
         K = self.factors
         M, N = X.shape
 

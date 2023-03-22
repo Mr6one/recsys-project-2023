@@ -17,7 +17,7 @@ class ALS:
         self.save_path = save_path
         self._logs = []
         
-    def fit(self, R):
+    def fit(self, R, validation=None):
 
         m, n = R.shape
         
