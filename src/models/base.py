@@ -16,7 +16,7 @@ class BaseModel:
         with open(save_path, 'wb') as f:
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
     
-    def save_model(self, path):
+    def save(self, path):
         self._save_model(path)
 
     def _to_device(self):
