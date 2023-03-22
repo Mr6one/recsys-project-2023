@@ -1,6 +1,6 @@
 {
     "model": "ngcf",
-    "dataset": "yelp",
+    "dataset": "movielens",
 
     "model_args": {
         "hidden_dim": 64, 

@@ -1,5 +1,6 @@
 import pandas as pd
-from src.utils import get_movielens_data, generate_interactions_matrix, verify_time_split, transform_indices
+from polara import get_movielens_data
+from src.utils import generate_interactions_matrix, verify_time_split, transform_indices
 from polara.preprocessing.dataframes import leave_one_out, reindex
 
 
@@ -10,7 +11,7 @@ def load_dataset(dataset, data_path):
     elif dataset == 'movielens':
         data = get_movielens_data(include_time=True)
     else:
-        raise ValueError('Dataset may be either "yelp" or "movielens"')
+        raise ValueError('Dataset msut be either "yelp" or "movielens"')
     
     training_, holdout_ = leave_one_out(
         data,

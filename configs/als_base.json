@@ -4,7 +4,7 @@
 
     "model_args": {
         "factors": 100,
-        "device": "cpu",
+        "device": "cuda",
         "save_path": "./weights/als_movielens.pkl"
     }
 }

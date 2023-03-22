@@ -4,7 +4,7 @@
 
     "model_args": {
         "factors": 100,
-        "device": "cpu",
-        "save_path": "./weights/eals_yelp.pkl"
+        "device": "cuda",
+        "save_path": "./weights/eals_movielens.pkl"
     }
 }

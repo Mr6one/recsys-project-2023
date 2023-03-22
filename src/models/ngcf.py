@@ -114,32 +114,14 @@ class NGCF(pl.LightningModule):
         loss = self.criterion(user_embeddings_, pos_items_embeddings, neg_items_embeddings)
 
         self.log('loss/training', loss, prog_bar=True, on_epoch=True, on_step=True)
-
-        if self.holdout_data is not None:
-            self._validation_step()
-
         return loss
-    
-    def _validation_step(self):
-        topn = 10
-        holdout, testset, data_description = self.holdout_data
-
-        scores_movielens = self.score_users(holdout.userid.values)
-        downvote_seen_items(scores_movielens, testset, data_description)
-        recs_movielens = topn_recommendations(scores_movielens, topn=topn)
-        hr, mrr, ndcg, _ = model_evaluate(recs_movielens, holdout, data_description, topn=topn) 
-
-        self.log('validation/hr', hr, on_epoch=True, on_step=False)
-        self.log('validation/mrr', mrr, on_epoch=True, on_step=False)
-        self.log('validation/ndcg', ndcg, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         return optimizer
     
-    def fit(self, interactions_matrix, holdout_data=None):
+    def fit(self, interactions_matrix):
         device = 'gpu' if self.device.type == 'cuda' else 'cpu'
-        self.holdout_data = holdout_data
 
         self.adj_matrix = self._prepare_model_input(interactions_matrix).to(self.device)
         dataset = NGCFDataset(interactions_matrix)

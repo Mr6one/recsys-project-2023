@@ -7,7 +7,7 @@ def main(config=None):
     if config is None:
         config = parse_args()
 
-    _, testset, holdout, training_matrix, data_description = load_dataset(config['dataset'], data_path='./data')
+    _, _, _, training_matrix, _ = load_dataset(config['dataset'], data_path='./data')
 
     if config['model'] == 'ngcf':
         n_users, n_items = training_matrix.shape
@@ -15,7 +15,7 @@ def main(config=None):
         config['model_args']['n_items'] = n_items
 
     model = models[config['model']](**config['model_args'])
-    model.fit(training_matrix, [holdout, testset, data_description])
+    model.fit(training_matrix)
 
 
 if __name__ == '__main__':

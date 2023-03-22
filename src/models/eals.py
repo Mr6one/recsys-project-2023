@@ -1,12 +1,13 @@
-import pickle
 import numpy as np
 from tqdm.notebook import tqdm
 
 import torch
 from torch_scatter import scatter_sum
 
+from src.models.base import BaseModel
 
-class eALS:
+
+class eALS(BaseModel):
     def __init__(self, factors, iterations=100, w=1, c=1, regularization=0.1, device='cpu', callback=None, save_path=None):
         self.w = w
         self.c = c
@@ -17,8 +18,11 @@ class eALS:
         self.callback = callback
         self.save_path = save_path
         self._logs = []
+
+        self.P = None
+        self.Q = None
         
-    def fit(self, X, validation=None):
+    def fit(self, X):
         K = self.factors
         M, N = X.shape
 
@@ -73,10 +77,16 @@ class eALS:
         torch.cuda.empty_cache()
 
         if self.save_path is not None:
-            with open(self.save_path, 'wb') as f:
-                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+            self._save_model(self.save_path)
 
         return self
+
+    def _to_device(self, device):
+        self.device = device
+
+        if self.P is not None and self.Q is not None:
+            self.P = self.P.to(device)
+            self.Q = self.Q.to(device)
     
     @torch.no_grad()
     def _recommend_all(self, user_ids):

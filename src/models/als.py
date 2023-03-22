@@ -1,12 +1,13 @@
-import pickle
 import numpy as np
 from tqdm.notebook import tqdm
 
 import torch
 from torch_scatter import scatter_sum
 
+from src.models.base import BaseModel
 
-class ALS:
+
+class ALS(BaseModel):
     def __init__(self, factors, iterations=100, regularization=0.1, device='cpu', callback=None, save_path=None):
         
         self.factors = factors
@@ -16,9 +17,11 @@ class ALS:
         self.callback = callback
         self.save_path = save_path
         self._logs = []
-        
-    def fit(self, R, validation=None):
 
+        self.P = None
+        self.Q = None
+        
+    def fit(self, R):
         m, n = R.shape
         
         P = torch.randn(m, self.factors, device=self.device) / np.sqrt(self.factors)
@@ -50,10 +53,19 @@ class ALS:
         torch.cuda.empty_cache()
 
         if self.save_path is not None:
-            with open(self.save_path, 'wb') as f:
-                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+            self._save_model(self.save_path)
 
         return self
+    
+    def save_model(self, path):
+        self._save_model(path)
+
+    def _to_device(self, device):
+        self.device = device
+
+        if self.P is not None and self.Q is not None:
+            self.P = self.P.to(device)
+            self.Q = self.Q.to(device)
     
     @torch.no_grad()
     def _recommend_all(self, user_ids):
