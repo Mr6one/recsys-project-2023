@@ -185,4 +185,11 @@ def verify_time_split(before, after, target_field='userid', timeid='timestamp'):
         .combine(after_ts, lambda x, y: True if x!=x else x <= y)
     ).all()
 
-
+    
+def get_table_barplot(dataset_metrics, model_names= ['ALS','eALS','iALS','Neuro']):
+    metrics = ['HR','MRR','nDCG','COV']
+    
+    df_metrics = pd.DataFrame(dataset_metrics, columns=metrics, index=model_names)
+    df_metrics.T.plot.bar(stacked=True, alpha=.9)
+    
+    return df_metrics
