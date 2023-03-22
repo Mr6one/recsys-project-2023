@@ -1,0 +1,10 @@
+{
+    "model": "eals",
+    "dataset": "movielens",
+
+    "model_args": {
+        "factors": 100,
+        "device": "cuda",
+        "save_path": "./weights/eals_movielens.pkl"
+    }
+}

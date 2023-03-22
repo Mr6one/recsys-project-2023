@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from tqdm.notebook import tqdm
 
@@ -6,13 +7,14 @@ from torch_scatter import scatter_sum
 
 
 class ALS:
-    def __init__(self, factors, iterations=100, regularization=0.1, device='cpu', callback=None):
+    def __init__(self, factors, iterations=100, regularization=0.1, device='cpu', callback=None, save_path=None):
         
         self.factors = factors
         self.regularization = regularization
         self.iterations = iterations
         self.device = device
         self.callback = callback
+        self.save_path = save_path
         self._logs = []
         
     def fit(self, R):
@@ -46,6 +48,11 @@ class ALS:
         self.Q = Q
 
         torch.cuda.empty_cache()
+
+        if self.save_path is not None:
+            with open(self.save_path, 'wb') as f:
+                pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+
         return self
     
     @torch.no_grad()
