@@ -30,8 +30,8 @@ model = model.cpu() # switch to cpu
 model = model.cuda() # back to gpu
 ```
 
-### Checkpoints
-You can save and load the pretrained models. **Note:** models are allocated to cpu before saving, so don't forget to switch back to cuda after loading.
+### Checkpointing
+You can save and load the pretrained models. **Note:** the models are allocated to cpu before saving, so don't forget to switch back to cuda after loading.
 
 ```python
 model = iALS(device='cuda').fit(X) # train model on large dataset with high-end GPU
