@@ -132,6 +132,14 @@ class NGCF(pl.LightningModule):
         trainer.fit(self, dataloader)
         return self
     
+    def save(self, path):
+        torch.save(self, path)
+
+    @staticmethod
+    def from_checkpoint(path):
+        model = torch.load(path)
+        return model
+    
     @torch.no_grad()
     def _recommend_all(self, user_ids):
         user_ids = torch.from_numpy(user_ids).to(torch.long).to(self.device)
