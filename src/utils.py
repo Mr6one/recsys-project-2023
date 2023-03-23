@@ -54,10 +54,10 @@ def verify_time_split(before, after, target_field='userid', timeid='timestamp'):
     ).all()
 
     
-def get_table_barplot(dataset_metrics, model_names= ['ALS', 'eALS', 'iALS', 'NGCF']):
+def get_table_barplot(dataset_metrics, model_names= ['ALS', 'eALS', 'iALS', 'NGCF'], stacked=True):
     metrics = ['HR', 'MRR', 'nDCG', 'COV']
     
     df_metrics = pd.DataFrame(dataset_metrics, columns=metrics, index=model_names)
-    df_metrics.T.plot.bar(stacked=True, alpha=0.9)
+    df_metrics.T.plot.bar(stacked=stacked, alpha=0.9)
     
     return df_metrics
