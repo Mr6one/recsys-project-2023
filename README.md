@@ -45,7 +45,7 @@ Moreover, the NGCF model supports tensorboard for logging and you can track the 
 ```bash
 tensorboard --logdir=lightning_logs --port=6009
 ```
-Then go to localhost:6009.
+Then go to localhost:6009
 
 ## Results
 
