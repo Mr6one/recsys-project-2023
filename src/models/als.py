@@ -69,23 +69,7 @@ class ALS(BaseModel):
     
     @torch.no_grad()
     def _recommend_all(self, user_ids):
+        user_ids = np.array(user_ids)
         user_ids = torch.from_numpy(user_ids).to(torch.long).to(self.device)
         scores = self.P[user_ids] @ self.Q.T
         return scores
-    
-    @torch.no_grad()
-    def recommend(self, user_ids, N=10):
-        scores = self._recommend_all(user_ids)
-        output = torch.topk(scores, N, dim=1).indices
-        return output.cpu().numpy()
-
-    @torch.no_grad()
-    def recommend_all(self, user_ids):
-        scores = self._recommend_all(user_ids)
-        output = torch.argsort(scores, descending=True, dim=1)
-        return output.cpu().numpy()
-    
-    @torch.no_grad()
-    def score_users(self, user_ids):
-        scores = self._recommend_all(user_ids)
-        return scores.cpu().numpy()

@@ -144,6 +144,7 @@ class NGCF(pl.LightningModule):
     
     @torch.no_grad()
     def _recommend_all(self, user_ids):
+        user_ids = np.array(user_ids)
         user_ids = torch.from_numpy(user_ids).to(torch.long).to(self.device)
         scores = self.user_embeddings[user_ids] @ self.item_embeddings.T
         return scores
