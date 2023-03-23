@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ## Usage
 
 ### Basics
-For all models you need simply provide a single matrix X of user-item interactions in any sparse format supported by scipy.sparse. For NGCF you need additionally provide the number of users and items.
+For all models you need simply provide **a single matrix X** of user-item interactions in any sparse format supported by scipy.sparse. For NGCF you need additionally provide the number of users and items.
 ```python
 from src.models import ALS # eALS, iALS, NGCF
 
