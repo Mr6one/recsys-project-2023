@@ -3,7 +3,7 @@ import pickle
 
 class BaseModel:
     def __init__(self):
-        pass
+        self.device = 'cpu'
 
     @staticmethod
     def from_checkpoint(path):
@@ -13,8 +13,12 @@ class BaseModel:
         return model
     
     def _save_model(self, save_path):
+        self.cpu()
         with open(save_path, 'wb') as f:
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        if self.device == 'cuda':
+            self.cuda()
     
     def save(self, path):
         self._save_model(path)

@@ -133,7 +133,9 @@ class NGCF(pl.LightningModule):
         return self
     
     def save(self, path):
+        self.cpu()
         torch.save(self, path)
+        self.to(self.device)
 
     @staticmethod
     def from_checkpoint(path):
