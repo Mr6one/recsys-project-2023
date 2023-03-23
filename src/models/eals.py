@@ -8,7 +8,7 @@ from src.models.base import BaseModel
 
 
 class eALS(BaseModel):
-    def __init__(self, factors, iterations=100, w=1, c=1, regularization=0.1, device='cpu', callback=None, save_path=None):
+    def __init__(self, factors=100, iterations=100, w=1, c=1, regularization=0.1, device='cpu', callback=None, save_path=None):
         self.w = w
         self.c = c
         self.factors = factors

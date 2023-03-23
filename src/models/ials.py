@@ -8,7 +8,7 @@ from src.models.base import BaseModel
 
 
 class iALS(BaseModel):
-    def __init__(self, factors, iterations=100, alpha=1, y=1, regularization=0.1, device='cpu', callback=None, save_path=None):
+    def __init__(self, factors=100, iterations=100, alpha=1, y=1, regularization=0.1, device='cpu', callback=None, save_path=None):
         
         self.factors = factors
         self.reg = regularization

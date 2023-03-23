@@ -8,7 +8,7 @@ from src.models.base import BaseModel
 
 
 class ALS(BaseModel):
-    def __init__(self, factors, iterations=100, regularization=0.1, device='cpu', callback=None, save_path=None):
+    def __init__(self, factors=100, iterations=100, regularization=0.1, device='cpu', callback=None, save_path=None):
         
         self.factors = factors
         self.regularization = regularization
