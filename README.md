@@ -49,17 +49,19 @@ Then go to localhost:6009
 
 ## Results
 
-TODO: add visualization
+Metrics obtained on the MovieLens dataset 
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/67689354/227788110-cb818a02-91aa-411f-a43a-3809caaabe72.png" />
-  
-</p>
-<p style="text-align: center;">
-  Metrics obtained on the MovieLends dataset
-</p>
+![image](https://user-images.githubusercontent.com/67689354/227789667-6e65c2a5-e165-4b52-a0ae-184f82bae2ea.png)
 
-The most straingtforward way to reproduce our results is
+Metrics obtained on the Yelp dataset
+
+![image](https://user-images.githubusercontent.com/67689354/227789707-1c89d1e0-11fc-438e-b858-a50f58f2ff34.png)
+
+Time complexities graphs for ALS, eALS, iALS models
+
+<img src="https://user-images.githubusercontent.com/67689354/227789623-64e5824f-b235-4bc4-a1f3-e15fb081541e.png"  width="100%">
+
+For all reuslts [see](https://github.com/Mr6one/recsys-project-2023/blob/main/notebooks/experiments.ipynb). The most straingtforward way to reproduce our results is
 
 ```bash
 python main.py --config ./configs/{model_name}_base.json
