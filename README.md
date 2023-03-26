@@ -51,10 +51,18 @@ Then go to localhost:6009
 
 TODO: add visualization
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/67689354/227788110-cb818a02-91aa-411f-a43a-3809caaabe72.png" />
+  
+</p>
+<p style="text-align: center;">
+  Metrics obtained on the MovieLends dataset
+</p>
+
 The most straingtforward way to reproduce our results is
 
 ```bash
 python main.py --config ./configs/{model_name}_base.json
 ```
 
-Don't forget to chose the appropriate dataset.
+Or use the [pretrained models](https://github.com/Mr6one/recsys-project-2023/tree/main/weights). Don't forget to choose the appropriate dataset.
