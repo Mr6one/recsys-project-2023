@@ -2,6 +2,7 @@
 
 This repo contains a PyTorch implementation of ALS algorithm for Collaborative Filtering and its extentions &mdash; eALS and iALS. Additionally, it provides the implementation of NGCF &mdash; Neural Graph for Collaborative Filtering.
 
+Project [presentation](https://github.com/Mr6one/recsys-project-2023/blob/main/presentation.pdf) 
 ## Installation 
 
 ```bash
