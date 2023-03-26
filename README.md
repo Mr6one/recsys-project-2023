@@ -61,7 +61,7 @@ Time complexities graphs for ALS, eALS, iALS models
 
 <img src="https://user-images.githubusercontent.com/67689354/227789623-64e5824f-b235-4bc4-a1f3-e15fb081541e.png"  width="100%">
 
-For all reuslts [see](https://github.com/Mr6one/recsys-project-2023/blob/main/notebooks/experiments.ipynb). The most straingtforward way to reproduce our results is
+For full reuslts see the [notebook](https://github.com/Mr6one/recsys-project-2023/blob/main/notebooks/experiments.ipynb). The most straingtforward way to reproduce our results is
 
 ```bash
 python main.py --config ./configs/{model_name}_base.json
