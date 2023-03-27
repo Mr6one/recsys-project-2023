@@ -8,6 +8,7 @@ Project [report](https://github.com/Mr6one/recsys-project-2023/blob/main/report.
 
 ```bash
 git clone https://github.com/Mr6one/recsys-project-2023.git && cd recsys-project-2023
+
 pip install -r requirements.txt
 ```
 
